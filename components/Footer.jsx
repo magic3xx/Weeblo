@@ -15,7 +15,7 @@ const Footer = () => {
                 <div className="flex justify-between items-center pb-4">
                     <div className="flex items-center space-x-2">
                         <Link href="https://t.me/magic0xx">
-                            <TelegramIcon className="text-pink-600 h-6 w-6" />
+                            <InstagramIcon className="text-pink-600 h-6 w-6" />
                         </Link>
                     </div>
                     <div className="flex space-x-1">
