@@ -14,8 +14,8 @@ const Footer = () => {
             <div className="container mx-auto px-6 py-4">
                 <div className="flex justify-between items-center pb-4">
                     <div className="flex items-center space-x-2">
-                        <Link href="https://www.instagram.com/mzeeshan2005/">
-                            <InstagramIcon className="text-pink-600 h-6 w-6" />
+                        <Link href="https://t.me/magic0xx">
+                            <TelegramIcon className="text-pink-600 h-6 w-6" />
                         </Link>
                     </div>
                     <div className="flex space-x-1">
@@ -50,11 +50,11 @@ const Footer = () => {
                         </Link>
                     </div>
                     <p className="text-sm text-gray-400">
-                        Weeblo does not store any files on our server, we only use 3rd party media services.
+                        Hobaz Anime does not store any files on our server, we only use 3rd party media services.
                     </p>
                 </div>
                 <div className="text-center sm:space-x-10 flex flex-wrap items-center justify-center pt-4">
-                    <p className="text-sm text-gray-400">© Weeblo.to All rights reserved.</p>
+                    <p className="text-sm text-gray-400">© Hobaz Anime.to All rights reserved.</p>
                     <div className='flex flex-wrap items-center text-sm text-gray-400'><p className="text-sm mr-[0.5rem]">This site uses</p> <Link href="https://kitsu.io/explore/anime" className='text-secondary hover:underline'>Kitsu API</Link> <p className='ml-[0.5rem]'> for 3rd party data.</p></div>
                 </div>
             </div>
