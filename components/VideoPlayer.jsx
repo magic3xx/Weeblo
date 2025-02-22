@@ -429,7 +429,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
     setPlaybackRate(playbackSpeeds[currentSpeedIndex])
   }
-  const rtlLanguages = ["ar", "he", "fa", "ur"] // Add other RTL languages as needed
+  const rtlLanguages = ["ar", "he", ', "fa', "ur"] // Add other RTL languages as needed
   return (
     <div id="player" className={cn("z-0 relative w-full h-full flex-1 aspect-video")}>
       <div id="playerAbsolute" className="z-10 absolute h-[85%] w-full"></div>
