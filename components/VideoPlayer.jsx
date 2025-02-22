@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import { cn } from "@/lib/utils"
 import {
   ChevronUp,
@@ -23,12 +23,47 @@ import { Slider } from "@/components/ui/slider"
 import { debounce } from "lodash"
 import { Separator } from "./ui/separator"
 import { Kanit } from "next/font/google"
+import type React from "react"
 const kanit = Kanit({
   weight: ["500"],
   style: "normal",
   subsets: ["latin"],
 })
-const VideoPlayer = ({
+
+interface Caption {
+  src: string
+  label: string
+  default: boolean
+  index: number
+  lang: string
+}
+
+interface VideoPlayerProps {
+  Url: string
+  tracks: Array<{
+    file: string
+    label: string
+    kind: string
+    default?: boolean
+    srclang?: string
+  }>
+  type: string
+  intro: { start: number; end: number }
+  outro: { start: number; end: number }
+  setEpEnded: (ended: boolean) => void
+  userPreferences: {
+    AutoPlay?: boolean
+    volumeLevel?: number
+    qualityLevel?: number
+    AutoNext?: boolean
+  }
+  setUserPreferences: React.Dispatch<React.SetStateAction<any>>
+  setPlayedTime: (time: number) => void
+  setTotalTime: (time: number) => void
+  continueWatchTime?: number
+}
+
+const VideoPlayer: React.FC<VideoPlayerProps> = ({
   Url,
   tracks,
   type,
@@ -41,7 +76,7 @@ const VideoPlayer = ({
   setTotalTime,
   continueWatchTime,
 }) => {
-  const player = useRef()
+  const player = useRef<ReactPlayer>(null)
   const [showControls, setShowControls] = useState(true)
   const [showCursor, setShowCursor] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -49,26 +84,20 @@ const VideoPlayer = ({
   const [loading, setLoading] = useState(false)
   const [playing, setPlaying] = useState(userPreferences?.AutoPlay)
   const [duration, setDuration] = useState(0)
-  const [qualities, setQualities] = useState(null)
-  const [currentQuality, setCurrentQuality] = useState(null)
+  const [qualities, setQualities] = useState<Array<{ height: number }> | null>(null)
+  const [currentQuality, setCurrentQuality] = useState<number | null>(null)
   const [playbackRate, setPlaybackRate] = useState(1)
-  const [selectedTrack, setSelectedTrack] = useState(null)
+  const [selectedTrack, setSelectedTrack] = useState<number | "off">(0)
   const [volume, setVolume] = useState(userPreferences?.volumeLevel ? userPreferences?.volumeLevel : 0.9)
-  const progressIntervalRef = useRef(null)
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [isOpen1, setIsOpen1] = useState(false)
-  let controlsTimeout
-  let cursorTimeout
-  const [captions, setCaptions] = useState<Array<{
-    src: string
-    label: string
-    default: boolean
-    index: number
-    lang: string
-  }> | null>(null)
-  const [captionsToUse, setCaptionsToUse] = useState([])
-  const [currentCaptions, setCurrentCaptions] = useState([])
+  let controlsTimeout: NodeJS.Timeout
+  let cursorTimeout: NodeJS.Timeout
+  const [captions, setCaptions] = useState<Array<Caption> | null>(null)
+  const [captionsToUse, setCaptionsToUse] = useState<Array<{ startTime: number; endTime: number; text: string }>>([])
+  const [currentCaptions, setCurrentCaptions] = useState<string[]>([])
   const playbackSpeeds = [0.5, 1, 1.25, 2]
   const [currentSpeedIndex, setCurrentSpeedIndex] = useState(1)
   useEffect(() => {
@@ -86,7 +115,7 @@ const VideoPlayer = ({
     )
     setSelectedTrack(defaultTrackIndex !== -1 ? defaultTrackIndex : 0)
   }, [tracks])
-  async function fetchSubtitleFile(url) {
+  const fetchSubtitleFile = useCallback(async (url) => {
     try {
       const response = await fetch(url)
       if (!response.ok) {
@@ -98,8 +127,8 @@ const VideoPlayer = ({
       console.error("Error fetching subtitle file:", error)
       return null
     }
-  }
-  function parseVTT(vttContent) {
+  }, [])
+  const parseVTT = useCallback((vttContent) => {
     // Split the VTT content into individual lines
     const lines = vttContent?.trim().split(/\r?\n/)
 
@@ -127,7 +156,7 @@ const VideoPlayer = ({
       }
     }
     return subtitles
-  }
+  }, [])
   function timeStrToSeconds(timeStr) {
     const parts = timeStr.split(":").map(Number.parseFloat)
     let seconds = 0
@@ -157,10 +186,10 @@ const VideoPlayer = ({
         setCaptionsToUse(cap)
       }
     })
-  }, [selectedTrack, captions])
-  const stripHtmlTags = (text) => {
+  }, [selectedTrack, captions, fetchSubtitleFile, parseVTT])
+  const stripHtmlTags = useCallback((text) => {
     return text.replace(/<[^>]+>/g, "") // Remove all HTML tags, keeping \n intact
-  }
+  }, [])
   useEffect(() => {
     if (selectedTrack == "off") return
     const caption = captionsToUse?.find((caption) => caption.startTime <= currentTime && currentTime <= caption.endTime)
@@ -171,7 +200,7 @@ const VideoPlayer = ({
     } else {
       setCurrentCaptions([])
     }
-  }, [currentTime, captionsToUse])
+  }, [currentTime, captionsToUse, selectedTrack, stripHtmlTags])
   useEffect(() => {
     return () => {
       clearInterval(progressIntervalRef.current)
@@ -258,15 +287,15 @@ const VideoPlayer = ({
       pA.removeEventListener("dblclick", handleDoubleClick)
       pA.removeEventListener("click", handleClick)
       pA.removeEventListener("touchend", handleTap)
-      p.addEventListener("mousemove", handleMouseMove)
-      p.addEventListener("mouseleave", () => {
+      p.removeEventListener("mousemove", handleMouseMove)
+      p.removeEventListener("mouseleave", () => {
         clearTimeout(controlsTimeout)
         controlsTimeout = setTimeout(() => {
           setShowControls(false)
         }, 1000)
       })
     }
-  }, [])
+  }, [controlsTimeout, cursorTimeout])
   useEffect(() => {
     const videoElement = document.querySelector("#player")
     if (videoElement && !showCursor) {
