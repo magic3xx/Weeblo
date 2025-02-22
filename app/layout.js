@@ -6,9 +6,9 @@ import Footer from "@/components/Footer";
 import NextTopLoader from "nextjs-toploader";
 import Head from "next/head";
 export const metadata = {
-  title: "Weeblo",
+  title: "Hobaz-Anime",
   description:
-    "Weeblo - A Modern Anime streaming application for Weebs - Ads free service",
+    "Hobaz Anime - A Modern Anime streaming application for Weebs - Ads free service",
   url: "https://www.weeblo.vercel.app",
   siteName: "Weeblo",
   name: "Weeblo",
