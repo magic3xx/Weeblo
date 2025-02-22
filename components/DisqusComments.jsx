@@ -13,7 +13,7 @@ const bakbak_one = Bakbak_One({
 const DisqusComments = ({ episode }) => {
     const [openEps, setOpenEps] = useState(false)
     const theme = useTheme()
-    const disqusShortname = 'weeblo';
+    const disqusShortname = 'Hobaz';
     const config = {
         url: window ? window.location.href : "",
         identifier: `${episode.animeId}?ep=${episode.epNumber}`,
